@@ -1,3 +1,7 @@
+if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+  location.protocol = 'https:';
+}
+
 var localVideo = null,
   remoteVideo = null,
   localVideoStream = null,
@@ -10,11 +14,8 @@ var localVideo = null,
       { url: 'stun:stun.l.google.com:19302' },
     ],
   },
-  wsc = new WebSocket('wss://' + window.location.host);
-
-if (location.protocol !== 'https:') {
-  location.protocol = 'https:';
-}
+  socketProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+wsc = new WebSocket(socketProtocol + '//' + window.location.host);
 
 function onIceCandidateHandler(e) {
   if (!e || !e.candidate) return;

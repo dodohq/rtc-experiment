@@ -1,18 +1,11 @@
 import WebSocket from 'ws';
-import https from 'https';
+import http from 'http';
 import fs from 'fs';
 import dotenv from 'dotenv';
 import path from 'path';
 
 if (process.env.NODE_ENV === 'dev') dotenv.load();
 
-const pkey = fs.readFileSync('./ssl/key.pem');
-const pcert = fs.readFileSync('./ssl/server.crt');
-const options = {
-  key: pkey,
-  cert: pcert,
-  passphrase: process.env.KEY_PAIR_PSSWD,
-};
 const clients = [];
 
 function serveStatic(request, response) {
@@ -65,11 +58,9 @@ function serveStatic(request, response) {
   });
 }
 
-const sslServer = https
-  .createServer(options, serveStatic)
-  .listen(process.env.PORT);
+const server = http.createServer(serveStatic).listen(process.env.PORT);
 
-const wss = new WebSocket.Server({ server: sslServer });
+const wss = new WebSocket.Server({ server });
 
 wss.on('connection', function(client) {
   clients.push(client);
