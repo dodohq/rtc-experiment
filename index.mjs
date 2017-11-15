@@ -6,8 +6,6 @@ import path from 'path';
 
 if (process.env.NODE_ENV === 'dev') dotenv.load();
 
-const clients = [];
-
 function serveStatic(request, response) {
   console.log('request ', request.url);
 
@@ -60,21 +58,18 @@ function serveStatic(request, response) {
 
 const server = http.createServer(serveStatic).listen(process.env.PORT);
 
-const wss = new WebSocket.Server({ server });
+const wss = new WebSocket.Server({ server, clientTracking: true });
 
 wss.on('connection', function(client) {
-  clients.push(client);
   client.on('message', function(message) {
     wss.broadcast(message, client);
   });
 });
 
 wss.broadcast = function(data, exclude) {
-  const n = clients ? clients.length : 0;
-  let client;
+  const n = this.clients ? this.clients.size : 0;
   if (n < 1) return;
-  for (let i = 0; i < n; i++) {
-    client = clients[i];
+  for (let client of this.clients) {
     if (client === exclude) continue;
     if (client.readyState === client.OPEN) client.send(data);
     else console.error('Error: client state is still', client.readyState);
